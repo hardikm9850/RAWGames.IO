@@ -111,21 +111,23 @@ actor GamesCacheService { // actor is a swift task
     }
     
     // Wipes the entire cache — used for pull-to-refresh
-    func clearAll() throws {
-        let deleteRequest = NSFetchRequest<NSFetchRequestResult>(
-            entityName: "CachedGame"
-        )
-        let batchDelete = NSBatchDeleteRequest(fetchRequest: deleteRequest)
-        batchDelete.resultType = .resultTypeObjectIDs
-        
-        let result = try context.execute(batchDelete) as? NSBatchDeleteResult
-        let objectIDs = result?.result as? [NSManagedObjectID] ?? []
-        
-        // Merge the deletions into the context so in-memory state is consistent
-        NSManagedObjectContext.mergeChanges(
-            fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
-            into: [context]
-        )
+    func clearAll() async throws {
+        try await context.perform {
+            let deleteRequest = NSFetchRequest<NSFetchRequestResult>(
+                entityName: "CachedGame"
+            )
+            let batchDelete = NSBatchDeleteRequest(fetchRequest: deleteRequest)
+            batchDelete.resultType = .resultTypeObjectIDs
+            
+            let result = try self.context.execute(batchDelete) as? NSBatchDeleteResult
+            let objectIDs = result?.result as? [NSManagedObjectID] ?? []
+            
+            NSManagedObjectContext.mergeChanges(
+                fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
+                into: [self.context]
+            )
+        }
+    }
     }
     
 }
