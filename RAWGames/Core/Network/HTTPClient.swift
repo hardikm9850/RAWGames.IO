@@ -50,6 +50,4 @@ struct HTTPClient: Sendable {
             throw NetworkError.decodingFailed(error)
         }
     }
-        }
-    }
 }
