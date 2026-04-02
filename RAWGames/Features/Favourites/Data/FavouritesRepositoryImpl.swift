@@ -12,19 +12,19 @@ import CoreData
 import CoreData
 
 actor FavouritesRepositoryImpl: FavouritesRepository {
-
+    
     private let context: NSManagedObjectContext
-
+    
     init(context: NSManagedObjectContext) {
         self.context = context
     }
-
+    
     // MARK: - Read
-
+    
     func fetchFavourites() throws -> [Game] {
         var result: [Game] = []
         var fetchError: Error?
-
+        
         context.performAndWait {
             // Manually construct — avoids calling @MainActor fetchRequest()
             let request = NSFetchRequest<FavouriteGame>(entityName: "FavouriteGame")
@@ -46,18 +46,21 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
                 fetchError = error
             }
         }
-
+        
         if let fetchError { throw fetchError }
         return result
     }
-
+    
     func isFavourite(id: Int) throws -> Bool {
         var result = false
         var fetchError: Error?
-
+        
         context.performAndWait {
             let request = NSFetchRequest<FavouriteGame>(entityName: "FavouriteGame")
-            request.predicate = NSPredicate(format: "id == %d", id)
+            request.predicate = NSPredicate(
+                format: "id == %@",
+                NSNumber(value: Int64(id))
+            )
             request.fetchLimit = 1
             do {
                 result = try !self.context.fetch(request).isEmpty
@@ -65,18 +68,18 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
                 fetchError = error
             }
         }
-
+        
         if let fetchError { throw fetchError }
         return result
     }
-
+    
     // MARK: - Write
-
+    
     func addFavourite(_ game: Game) throws {
         guard try !isFavourite(id: game.id) else { return }
-
+        
         var saveError: Error?
-
+        
         context.performAndWait {
             let favourite = FavouriteGame(context: self.context)
             // performAndWait runs on context's queue — safe to set properties
@@ -85,24 +88,26 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
             favourite.image = game.backgroundImage
             favourite.rating = game.rating
             favourite.addedAt = Date()
-
+            
             do {
                 try self.context.save()
             } catch {
                 saveError = error
             }
         }
-
+        
         if let saveError { throw saveError }
     }
-
+    
     func removeFavourite(id: Int) throws {
         var saveError: Error?
-
+        
         context.performAndWait {
             let request = NSFetchRequest<FavouriteGame>(entityName: "FavouriteGame")
-            request.predicate = NSPredicate(format: "id == %d", id)
-
+            request.predicate = NSPredicate(
+                format: "id == %@",
+                NSNumber(value: Int64(id))
+            )
             do {
                 let results = try self.context.fetch(request)
                 results.forEach { self.context.delete($0) }
@@ -111,7 +116,7 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
                 saveError = error
             }
         }
-
+        
         if let saveError { throw saveError }
     }
 }

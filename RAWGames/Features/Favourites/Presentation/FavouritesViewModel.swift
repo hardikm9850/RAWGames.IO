@@ -44,8 +44,12 @@ final class FavouritesViewModel {
     }
     
     func loadFavouriteIDs() async {
-        let favourites = try? await favouritesRepository.fetchFavourites()
-        favouriteIDs = Set(favourites?.map(\.id) ?? [])
+        do {
+            let favourites = try await favouritesRepository.fetchFavourites()
+            favouriteIDs = Set(favourites.map(\.id))
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
     
     func loadFavourites() async {
@@ -60,8 +64,8 @@ final class FavouritesViewModel {
     func remove(_ game: Game) async {
         do {
             try await favouritesRepository.removeFavourite(id: game.id)
-            // Remove optimistically from local state — instant UI response
             favourites.removeAll { $0.id == game.id }
+            favouriteIDs.remove(game.id)
         } catch {
             errorMessage = error.localizedDescription
             // On failure, reload from source of truth
