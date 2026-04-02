@@ -1,0 +1,10 @@
+//
+//  Config.xcconfig
+//  RAWGames
+//
+//  Created by Hardik Mehta on 01/04/26.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+RAWG_API_KEY =
