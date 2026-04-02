@@ -19,29 +19,17 @@
 		56427A392F7D11CA003327EF /* Exceptions for "RAWGames" folder in "RAWGames" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Features/Favourites/Data/FavouriteGame+Mapping.swift",
 				Info.plist,
 			);
 			target = 562520A22F7BCC84002DA520 /* RAWGames */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		56427A3A2F7D11CA003327EF /* Exceptions for "RAWGames" folder in "Copy Bundle Resources" phase from "RAWGames" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 562520A12F7BCC84002DA520 /* Resources */;
-			membershipExceptions = (
-				"Features/Favourites/Data/FavouriteGame+Mapping.swift",
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		562520A52F7BCC84002DA520 /* RAWGames */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				56427A392F7D11CA003327EF /* Exceptions for "RAWGames" folder in "RAWGames" target */,
-				56427A3A2F7D11CA003327EF /* Exceptions for "RAWGames" folder in "Copy Bundle Resources" phase from "RAWGames" target */,
 			);
 			path = RAWGames;
 			sourceTree = "<group>";
