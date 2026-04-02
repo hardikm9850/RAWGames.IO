@@ -40,11 +40,16 @@ struct HTTPClient: Sendable {
         }
 
         do {
+            guard !data.isEmpty else {
+                throw NetworkError.noData
+            }
             let decoder = JSONDecoder()
             
             return try decoder.decode(T.self, from: data)
         } catch {
             throw NetworkError.decodingFailed(error)
+        }
+    }
         }
     }
 }
