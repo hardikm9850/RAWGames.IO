@@ -58,6 +58,7 @@ final class GamesListViewModel {
     }
     
     func search() async {
+        errorMessage = nil
         guard !searchQuery.isEmpty else {
             await loadGames()
             return
@@ -85,6 +86,7 @@ final class GamesListViewModel {
     }
     
     func toggleFavourite(_ game: Game) async {
+        errorMessage = nil
         do {
             if favouriteIDs.contains(game.id) {
                 try await favouritesRepository.removeFavourite(id: game.id)

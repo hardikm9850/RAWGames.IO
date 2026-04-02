@@ -27,10 +27,7 @@ struct GamesListView: View {
             }
         }
         .task {
-                async let games: () = viewModel.loadGames()
-                async let favs: () = viewModel.loadFavouriteIDs()
-                await games
-                await favs
+            await viewModel.loadGames()
         }
         .alert("Something went wrong",
                isPresented: Binding(

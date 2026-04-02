@@ -128,6 +128,4 @@ actor GamesCacheService { // actor is a swift task
             )
         }
     }
-    }
-    
 }
