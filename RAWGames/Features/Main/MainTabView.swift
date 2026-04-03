@@ -17,7 +17,7 @@ struct MainTabView: View {
             )
             .tabItem {
                 Image(systemName: "house")
-                Text("Random Games")
+                Text("Games")
             }
             
             FavouritesView(
@@ -28,7 +28,9 @@ struct MainTabView: View {
                 Text("Favorites")
             }
             
-            NotesView()
+            NotesView(
+                viewModel: container.notesViewModel
+            )
             .tabItem {
                 Image(systemName: "square.and.pencil")
                 Text("Notes")

@@ -21,9 +21,13 @@ public final class DependencyContainer {
     // Actor — one instance shared across the app
     let cacheService: GamesCacheService
     
+    // MARK: - DAO
+    private let gameNoteDAO: GameNoteDAO
+    
     // MARK: - Repositories
     private let gamesRepository: GamesRepository
     private let favouritesRepository: FavouritesRepository
+    private let gameNoteRepository: GameNoteRepository
     
     // MARK: - Use Cases
     private let fetchGamesUseCase: FetchGamesUseCase
@@ -32,6 +36,7 @@ public final class DependencyContainer {
     // MARK: - ViewModel
     let gamesListViewModel: GamesListViewModel
     let favouritesViewModel: FavouritesViewModel
+    let notesViewModel: NotesViewModel
     
     private init() {
         coreDataStack = CoreDataStack.shared
@@ -43,6 +48,7 @@ public final class DependencyContainer {
         cacheService = GamesCacheService(
             container:  coreDataStack.container
         )
+        gameNoteDAO = GameNoteDAOImpl(context: coreDataStack.newBackgroundContext())
         
         favouritesRepository = FavouritesRepositoryImpl(
             context: coreDataStack.viewContext
@@ -51,6 +57,7 @@ public final class DependencyContainer {
                     apiService: apiService,
                     cacheService: cacheService
                 )
+        gameNoteRepository = GameNoteRepositoryImpl(dao: gameNoteDAO)
         
         fetchGamesUseCase = FetchGamesUseCase(repository: gamesRepository)
         searchGamesUseCase = SearchGamesUseCase(repository: gamesRepository)
@@ -61,5 +68,6 @@ public final class DependencyContainer {
                        favouritesRepository: favouritesRepository
         )
         self.favouritesViewModel = FavouritesViewModel(apiService: apiService, favouritesRepository: favouritesRepository)
+        self.notesViewModel = NotesViewModel(repository: gameNoteRepository)
     }
 }
