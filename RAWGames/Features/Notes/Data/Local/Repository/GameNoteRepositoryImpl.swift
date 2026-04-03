@@ -16,19 +16,19 @@ final class GameNoteRepositoryImpl: GameNoteRepository {
     }
     
     func getAllNotes() async throws -> [GameNoteModel] {
-        try dao.fetchAll().map { $0.toDomain() }
+        try await dao.fetchAll()
     }
     
     func getNotes(for gameId: Int) async throws -> [GameNoteModel] {
-        try dao.fetchByGameId(gameId).map { $0.toDomain() }
+        try await dao.fetchByGameId(gameId)
     }
     
     func save(note: GameNoteModel) async throws {
-        try dao.save(note: note)
+        try await dao.save(note: note)
     }
     
     func delete(noteId: UUID) async throws {
-        try dao.delete(noteId: noteId)
+        try await dao.delete(noteId: noteId)
     }
 }
 

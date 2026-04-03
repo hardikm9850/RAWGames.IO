@@ -7,8 +7,8 @@
 import Foundation
 
 protocol GameNoteDAO {
-    func fetchAll() throws -> [GameNote]
-    func fetchByGameId(_ gameId: Int) throws -> [GameNote]
-    func save(note: GameNoteModel) throws
-    func delete(noteId: UUID) throws
+    func fetchAll() async throws -> [GameNoteModel]
+    func fetchByGameId(_ gameId: Int) async throws -> [GameNoteModel]
+    func save(note: GameNoteModel) async throws
+    func delete(noteId: UUID) async throws
 }
