@@ -10,7 +10,14 @@ import CoreData
 
 final class GameNoteDAOImpl: GameNoteDAO {
     
-    private let context: NSManagedObjectContext
+    // Each NSManagedObjectContext is bound to one queue/thread only [Executors.newSingleThreadExecutor()]
+    // A crash may occur if we touch context from a wrong thread
+    
+    // context.perform {} === handler.post {}
+    // context.perform forces the code to run on the correct queue internally
+    
+    private let context: NSManagedObjectContext // <-- this is not thread-safe.
+    
     
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -25,10 +32,10 @@ final class GameNoteDAOImpl: GameNoteDAO {
         }
     }
     
-    func fetchByGameId(_ gameId: Int) async throws -> [GameNoteModel] {
+    func fetchByGameId(_ gameId: UUID) async throws -> [GameNoteModel] {
         try await context.perform {
             let request: NSFetchRequest<GameNote> = GameNote.fetchRequest()
-            request.predicate = NSPredicate(format: "gameId == %d", gameId)
+            request.predicate = NSPredicate(format: "id == %d", gameId as CVarArg)
             
             let entities = try self.context.fetch(request)
             

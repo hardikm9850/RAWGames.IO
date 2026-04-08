@@ -7,9 +7,10 @@
 
 
 import SwiftUI
+import NukeUI
 
 struct GamesListView: View {
-    @State var viewModel : GamesListViewModel
+    @Bindable var viewModel: GamesListViewModel
     
     var body: some View {
         NavigationStack {
@@ -25,6 +26,13 @@ struct GamesListView: View {
             .onSubmit(of: .search) {
                 Task { await viewModel.search() }
             }
+            .onChange(of: viewModel.searchQuery) { old, newValue in
+                Task {
+                    if newValue.isEmpty {
+                        await viewModel.loadGames()
+                    }
+                }
+            }
         }
         .task {
             await viewModel.loadGames()
@@ -33,8 +41,8 @@ struct GamesListView: View {
                isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
-               ))
-        {
+               )
+        ){
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage ?? "")
@@ -45,7 +53,6 @@ struct GamesListView: View {
         List(viewModel.games) { game in
             GameHeroCard(
                 game: game,
-                isFavourite: viewModel.favouriteIDs.contains(game.id),
                 onToggleFavourite: {
                     Task { await viewModel.toggleFavourite(game) }
                 }
@@ -65,104 +72,102 @@ struct GamesListView: View {
 
 struct GameHeroCard: View {
     let game: Game
-    let isFavourite: Bool
     let onToggleFavourite: () -> Void
+    
+    
+    private var gameInfo: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            
+            Text(game.name)
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            HStack {
+                Image(systemName: "star.fill")
+                    .foregroundColor(.green)
+                
+                Text(String(format: "%.1f", game.rating))
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+            }
+        }
+    }
+    
+    private var favouriteButton: some View {
+        Button {
+            onToggleFavourite()
+        } label: {
+            Image(systemName: game.isFavorite ? "heart.fill" : "heart")
+                .font(.title3)
+                .foregroundStyle(game.isFavorite ? .red : .white)
+                .padding(10)
+                .background(.ultraThinMaterial, in: Circle())
+        }
+        .buttonStyle(.plain)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // All children are stacked on top of each other
+            // Default alignment = bottom-left
             ZStack(alignment: .bottomLeading) {
                 
                 RemoteImageView(url: game.backgroundImage
                                 ?? "https://placehold.co/600x400")
                 .frame(height: 200)
                 .frame(maxWidth: .infinity)
-                .clipped()
                 
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.6)],
                     startPoint: .center,
                     endPoint: .bottom
                 )
-                
-                
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(game.name)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    HStack {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.green)
-                        Text(String(format: "%.1f", game.rating))
-                            .foregroundColor(.white)
-                            .font(.subheadline)
-                    }
-                }
-                .padding()
-                
-                
-                VStack {
-                    HStack {
-                        Spacer()
-                        Button {
-                            onToggleFavourite()
-                        } label: {
-                            Image(systemName: isFavourite
-                                  ? "heart.fill" : "heart")
-                            .font(.title3)
-                            .foregroundStyle(isFavourite
-                                             ? .red : .white)
-                            .padding(10)
-                            .background(.ultraThinMaterial,
-                                        in: Circle())
-                        }
-                        .buttonStyle(.plain) 
-                    }
-                    Spacer()
-                }
-                .padding(10)
             }
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(alignment: .bottomLeading) {
+                gameInfo.padding()
+            }
+            .overlay(alignment: .topTrailing) {
+                favouriteButton
+                    .padding(10)
+            }
+            .background(Color(.systemBackground))
+            .shadow(radius: 5)
         }
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(radius: 5)
     }
 }
 
 
 struct RemoteImageView: View {
-    
     let url: String
     
     var body: some View {
-        AsyncImage(url: URL(string: url)) { phase in
-            
-            switch phase {
-                
-            case .empty:
-                ZStack {
-                    Color.gray.opacity(0.2)
-                    
-                    ProgressView()
-                }
-                
+        LazyImage(url: URL(string: url)) { state in
+            switch map(state) {
+            case .loading:
+                loadingView
             case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-                
+                image.resizable()
             case .failure:
-                ZStack {
-                    Color.gray.opacity(0.3)
-                    
-                    Image(systemName: "photo")
-                        .font(.largeTitle)
-                        .foregroundColor(.gray)
-                }
-                
-            @unknown default:
-                EmptyView()
+                errorView
             }
+        }
+        .animation(.easeInOut, value: UUID())
+    }
+    
+    private var loadingView: some View {
+        ZStack {
+            Color.gray.opacity(0.2)
+            ProgressView()
+        }
+    }
+    
+    private var errorView: some View {
+        ZStack {
+            Color.gray.opacity(0.3)
+            Image(systemName: "photo")
+                .font(.largeTitle)
+                .foregroundColor(.gray)
         }
     }
 }

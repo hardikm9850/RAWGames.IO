@@ -13,4 +13,5 @@ struct Game: Identifiable, Hashable, Sendable {
     let backgroundImage: String?
     let rating: Double
     let released: String?
+    var isFavorite: Bool = false
 }

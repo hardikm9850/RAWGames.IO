@@ -9,7 +9,7 @@ import SwiftUI
 import Foundation
 
 struct NotesView: View {
-    @State var viewModel : NotesViewModel
+    @Bindable var viewModel : NotesViewModel
     
     @State private var showAddNote = false
     
@@ -72,10 +72,12 @@ private extension NotesView {
                 .padding(.vertical, 4)
             }
             .onDelete { indexSet in
-                for index in indexSet {
-                    let note = viewModel.notes[index]
-                    Task {
-                        await viewModel.deleteNote(id: note.id)
+                let notesToDelete = indexSet.map { index in
+                    viewModel.notes[index].id
+                }
+                Task { // ensures deletions happen sequentially within a single task
+                    for id in notesToDelete {
+                        await viewModel.deleteNote(id: id)
                     }
                 }
             }

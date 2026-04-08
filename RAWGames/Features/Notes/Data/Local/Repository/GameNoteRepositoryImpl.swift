@@ -19,7 +19,7 @@ final class GameNoteRepositoryImpl: GameNoteRepository {
         try await dao.fetchAll()
     }
     
-    func getNotes(for gameId: Int) async throws -> [GameNoteModel] {
+    func getNotes(for gameId: UUID ) async throws -> [GameNoteModel] {
         try await dao.fetchByGameId(gameId)
     }
     

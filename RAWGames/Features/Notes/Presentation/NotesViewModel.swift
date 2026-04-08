@@ -22,6 +22,7 @@ final class NotesViewModel{
     }
     
     func loadNotes() async {
+        errorMessage = nil
         isLoading = true
         defer { isLoading = false }
         
@@ -33,6 +34,7 @@ final class NotesViewModel{
     }
     
     func addNote(title: String, content: String) async {
+        errorMessage = nil
         let note = GameNoteModel(
             id: UUID(),
             title: title,
@@ -50,6 +52,7 @@ final class NotesViewModel{
     }
     
     func deleteNote(id: UUID) async {
+        errorMessage = nil
         do {
             try await repository.delete(noteId: id)
             notes.removeAll { $0.id == id }
