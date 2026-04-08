@@ -24,12 +24,11 @@ final class GamesListViewModel {
     private let fetchGamesUseCase: FetchGamesUseCase
     private let searchGamesUseCase: SearchGamesUseCase
     private let favouritesRepository: FavouritesRepository
-
+    
     
     init(fetchGamesUseCase: FetchGamesUseCase,
          searchGamesUseCase: SearchGamesUseCase,
          favouritesRepository: FavouritesRepository,
-         //apiService :GamesAPIService
     ) {
         self.fetchGamesUseCase = fetchGamesUseCase
         self.searchGamesUseCase = searchGamesUseCase
@@ -47,9 +46,17 @@ final class GamesListViewModel {
             async let favourites = favouritesRepository.fetchFavourites()
             
             let (fetchedGames, fetchedFavourites) = try await (games, favourites)
+            self.favouriteIDs = Set(
+                fetchedFavourites.map { fav in
+                    fav.id
+                }
+            )
             
-            self.games = fetchedGames
-            self.favouriteIDs = Set(fetchedFavourites.map(\.id))
+            self.games = fetchedGames.map { game in
+                var updatedGame = game
+                updatedGame.isFavorite = favouriteIDs.contains(game.id)
+                return updatedGame
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -59,12 +66,9 @@ final class GamesListViewModel {
     
     func search() async {
         errorMessage = nil
-        guard !searchQuery.isEmpty else {
-            await loadGames()
-            return
-        }
         isSearching = true
         isLoading = true
+        
         do {
             games = try await searchGamesUseCase.execute(query: searchQuery)
         } catch {
@@ -81,8 +85,9 @@ final class GamesListViewModel {
     
     // MARK: - Favourites
     func loadFavouriteIDs() async {
-        let favourites = try? await favouritesRepository.fetchFavourites()
-        favouriteIDs = Set(favourites?.map(\.id) ?? [])
+        let favourites = try? await favouritesRepository.fetchFavourites() // return favourites or nil
+        
+        favouriteIDs = Set(favourites?.map(\.id) ?? []) // check for nulity 
     }
     
     func toggleFavourite(_ game: Game) async {
@@ -97,6 +102,15 @@ final class GamesListViewModel {
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+        updateGameFavouriteState(game.id)
+    }
+    
+    private func updateGameFavouriteState(_ gameID: Int) {
+        games = games.map { game in
+            var updatedGame = game
+            updatedGame.isFavorite = favouriteIDs.contains(game.id)
+            return updatedGame
         }
     }
 }

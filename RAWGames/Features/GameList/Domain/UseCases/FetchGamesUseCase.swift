@@ -6,7 +6,6 @@
 //
 
 
-import Foundation
 
 struct FetchGamesUseCase: Sendable {
 
@@ -25,30 +24,3 @@ struct FetchGamesUseCase: Sendable {
     }
 }
 
-struct SearchGamesUseCase: Sendable {
-
-    private let repository: GamesRepository
-
-    init(repository: GamesRepository) {
-        self.repository = repository
-    }
-
-    func execute(query: String) async throws -> [Game] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= 2 else {
-            throw UseCaseError.queryTooShort
-        }
-        return try await repository.searchGames(query: trimmed)
-    }
-}
-
-enum UseCaseError: LocalizedError {
-    case queryTooShort
-
-    var errorDescription: String? {
-        switch self {
-        case .queryTooShort:
-            return "Search query must be at least 2 characters."
-        }
-    }
-}

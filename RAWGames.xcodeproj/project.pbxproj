@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		560FFF1E2F7F7FB400D3044D /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 560FFF1D2F7F7FB400D3044D /* NukeUI */; };
 		569F05552F7D6DAA00A89866 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 569F05542F7D6DAA00A89866 /* Config.xcconfig */; };
 /* End PBXBuildFile section */
 
@@ -41,17 +42,26 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				560FFF1E2F7F7FB400D3044D /* NukeUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		560FFF1C2F7F7FB400D3044D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		5625209A2F7BCC84002DA520 = {
 			isa = PBXGroup;
 			children = (
 				569F05542F7D6DAA00A89866 /* Config.xcconfig */,
 				562520A52F7BCC84002DA520 /* RAWGames */,
+				560FFF1C2F7F7FB400D3044D /* Frameworks */,
 				562520A42F7BCC84002DA520 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -84,6 +94,7 @@
 			);
 			name = RAWGames;
 			packageProductDependencies = (
+				560FFF1D2F7F7FB400D3044D /* NukeUI */,
 			);
 			productName = RAWGames;
 			productReference = 562520A32F7BCC84002DA520 /* RAWGames.app */;
@@ -113,6 +124,9 @@
 			);
 			mainGroup = 5625209A2F7BCC84002DA520;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				560FFF1B2F7F7D7F00D3044D /* XCRemoteSwiftPackageReference "Nuke" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 562520A42F7BCC84002DA520 /* Products */;
 			projectDirPath = "";
@@ -353,6 +367,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		560FFF1B2F7F7D7F00D3044D /* XCRemoteSwiftPackageReference "Nuke" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Nuke";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.0.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		560FFF1D2F7F7FB400D3044D /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 560FFF1B2F7F7D7F00D3044D /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5625209B2F7BCC84002DA520 /* Project object */;
 }

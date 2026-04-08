@@ -8,20 +8,23 @@
 
 import Foundation
 
-enum APIEndpoint {
+enum GameRoute {
     private static let base = "https://api.rawg.io/api"
     private static let apiKey = AppConfig.apiKey
-
+    
+    
     case games(page: Int)
     case gameDetail(id: Int)
     case searchGames(query: String)
 
     var url: URL? {
-        var components = URLComponents(string: Self.base + path)
-        components?.queryItems = queryItems + [URLQueryItem(name: "key", value: Self.apiKey)]
+        var components = URLComponents(string: GameRoute.base + path)
+        let token = queryItems + [URLQueryItem(name: "key", value: GameRoute.apiKey)]
+        components?.queryItems = token
         return components?.url
     }
 
+    // Decides the endpoint
     private var path: String {
         switch self {
         case .games:             return "/games"
@@ -29,7 +32,8 @@ enum APIEndpoint {
         case .searchGames:       return "/games"
         }
     }
-
+    
+    // Decides query params
     private var queryItems: [URLQueryItem] {
         switch self {
         case .games(let page):
