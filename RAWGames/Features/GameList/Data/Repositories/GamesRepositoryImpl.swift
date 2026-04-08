@@ -17,8 +17,9 @@ import Foundation
 
 actor GamesRepositoryImpl: GamesRepository {
     
-    private let apiService: GamesAPIService
     private let cacheService: GamesCacheService
+    private let apiService: GamesAPIService
+    
     
     init(apiService: GamesAPIService,
          cacheService: GamesCacheService) {
@@ -29,8 +30,9 @@ actor GamesRepositoryImpl: GamesRepository {
     // MARK: - GamesRepository
     
     func fetchGames(page: Int = 1) async throws -> [Game] {
-
+        
         let cached = try await cacheService.fetchCachedGames()
+        
         if let cached {
             Task {
                 if let fresh = try? await apiService.fetchGames(page: page) {

@@ -16,7 +16,7 @@ struct GamesAPIService: Sendable {
     }
 
     func fetchGames(page: Int = 1) async throws -> [Game] {
-        guard let url = APIEndpoint.games(page: page).url else {
+        guard let url = GameRoute.games(page: page).url else {
             throw NetworkError.invalidURL
         }
         let response: GamesResponseDTO = try await client.get(url: url)
@@ -26,7 +26,7 @@ struct GamesAPIService: Sendable {
     }
 
     func fetchDetail(id: Int) async throws -> Game {
-        guard let url = APIEndpoint.gameDetail(id: id).url else {
+        guard let url = GameRoute.gameDetail(id: id).url else {
             throw NetworkError.invalidURL
         }
         let dto: GameDTO = try await client.get(url: url)
@@ -34,7 +34,7 @@ struct GamesAPIService: Sendable {
     }
 
     func searchGames(query: String) async throws -> [Game] {
-        guard let url = APIEndpoint.searchGames(query: query).url else {
+        guard let url = GameRoute.searchGames(query: query).url else {
             throw NetworkError.invalidURL
         }
         let response: GamesResponseDTO = try await client.get(url: url)
