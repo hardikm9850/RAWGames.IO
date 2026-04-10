@@ -14,9 +14,11 @@ import CoreData
 actor FavouritesRepositoryImpl: FavouritesRepository {
     
     private let context: NSManagedObjectContext
+    private let cacheService: GamesCacheService
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext,cacheService: GamesCacheService ) {
         self.context = context
+        self.cacheService = cacheService
     }
     
     // MARK: - Read
@@ -26,9 +28,7 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
         var fetchError: Error?
         
         context.performAndWait {
-            // Manually construct — avoids calling @MainActor fetchRequest()
             let request = NSFetchRequest<FavouriteGame>(entityName: "FavouriteGame")
-            // String-based sort descriptor — avoids @MainActor keypath
             request.sortDescriptors = [
                 NSSortDescriptor(key: "addedAt", ascending: false)
             ]
@@ -51,7 +51,7 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
         return result
     }
     
-    func isFavourite(id: Int) throws -> Bool {
+    func isFavourite(id: Int) async throws -> Bool {
         var result = false
         var fetchError: Error?
         
@@ -75,27 +75,33 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
     
     // MARK: - Write
     
-    func addFavourite(_ game: Game) throws {
-        guard try !isFavourite(id: game.id) else { return }
+    func addFavourite(id: Int) async throws {
+        guard try await !isFavourite(id: id) else { return }
+
+        guard let game = try await cacheService.fetchGameById(id: id) else {
+                throw CacheError.gameNotFound(id: id)
+            }
         
         var saveError: Error?
+        var fetchError: Error?
         
-        context.performAndWait {
-            let favourite = FavouriteGame(context: self.context)
-            // performAndWait runs on context's queue — safe to set properties
-            favourite.id = Int64(game.id)
-            favourite.name = game.name
-            favourite.image = game.backgroundImage
-            favourite.rating = game.rating
-            favourite.addedAt = Date()
-            
-            do {
-                try self.context.save()
-            } catch {
-                saveError = error
-            }
+        context.performAndWait { // performAndWait runs on context's queue — safe to set properties
+            let favourite = FavouriteGame(context: context)
+
+                    favourite.id = Int64(game.id)
+                    favourite.name = game.name
+                    favourite.image = game.backgroundImage
+                    favourite.rating = game.rating
+                    favourite.addedAt = Date()
+
+                    do {
+                        try context.save()
+                    } catch {
+                        saveError = error
+                    }
         }
         
+        if let fetchError { throw fetchError }
         if let saveError { throw saveError }
     }
     
@@ -118,5 +124,17 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
         }
         
         if let saveError { throw saveError }
+    }
+    
+    func toggleFavourite(id: Int) async throws -> Bool {
+        let current = try await isFavourite(id: id)
+        
+        if current {
+            try removeFavourite(id: id)
+        } else {
+            try await addFavourite(id: id)
+        }
+        
+        return !current
     }
 }
