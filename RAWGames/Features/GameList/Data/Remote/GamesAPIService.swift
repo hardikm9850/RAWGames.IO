@@ -25,12 +25,16 @@ struct GamesAPIService: Sendable {
         }
     }
 
-    func fetchDetail(id: Int) async throws -> Game {
+    func fetchDetail(id: Int) async throws -> GameDetail {
         guard let url = GameRoute.gameDetail(id: id).url else {
             throw NetworkError.invalidURL
         }
-        let dto: GameDTO = try await client.get(url: url)
-        return dto.toDomain()
+        
+        let dto: GameDetailDTO = try await client.get(url: url)
+        
+        let model: GameDetail = GameDetail(from: dto)
+        
+        return model
     }
 
     func searchGames(query: String) async throws -> [Game] {

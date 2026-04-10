@@ -17,8 +17,8 @@ import Foundation
 
 actor GamesRepositoryImpl: GamesRepository {
     
-    private let cacheService: GamesCacheService
-    private let apiService: GamesAPIService
+    private let cacheService: GamesCacheService // local
+    private let apiService: GamesAPIService // remote
     
     
     init(apiService: GamesAPIService,
@@ -47,16 +47,8 @@ actor GamesRepositoryImpl: GamesRepository {
         return games
     }
     
-    func fetchDetail(id: Int) async throws -> Game {
-        // Detail pages always go to network — they need full description text
-        // which isn't stored in the list cache.
-        // In a full app you'd have a separate detail cache entity.
-        try await apiService.fetchDetail(id: id)
-    }
     
     func searchGames(query: String) async throws -> [Game] {
-        // Search always hits the network — results are query-specific,
-        // caching them would require a query-keyed cache (future improvement)
         try await apiService.searchGames(query: query)
     }
     
