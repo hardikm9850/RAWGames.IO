@@ -27,9 +27,11 @@ final class GameDetailRepositoryImpl: GameDetailRepository {
             print("detail does not exist for id \(id), fetching via api")
             // API call
             let gameDetail = try await gameApiService.fetchDetail(id: id)
-            // Save locally
-            let _ = try await cacheService.updateGame(game: gameDetail)
-            print("saving in cache")
+            do {
+                _ = try await cacheService.updateGame(game: gameDetail)
+            } catch {
+                print("Cache update failed for id \(id), error: \(error)")
+            }
             return gameDetail
             
         } catch {
