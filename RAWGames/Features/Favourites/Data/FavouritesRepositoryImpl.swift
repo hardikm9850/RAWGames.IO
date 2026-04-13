@@ -76,28 +76,35 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
     // MARK: - Write
     
     func addFavourite(id: Int) async throws {
-        guard try await !isFavourite(id: id) else { return }
-
         guard let game = try await cacheService.fetchGameById(id: id) else {
-                throw CacheError.gameNotFound(id: id)
-            }
+            throw CacheError.gameNotFound(id: id)
+        }
         
         var saveError: Error?
         
         context.performAndWait { // performAndWait runs on context's queue — safe to set properties
-            let favourite = FavouriteGame(context: context)
-
-                    favourite.id = Int64(game.id)
-                    favourite.name = game.name
-                    favourite.image = game.backgroundImage
-                    favourite.rating = game.rating
-                    favourite.addedAt = Date()
-
-                    do {
-                        try context.save()
-                    } catch {
-                        saveError = error
-                    }
+            
+            let request = NSFetchRequest<FavouriteGame>(entityName: "FavouriteGame")
+            request.predicate = NSPredicate(
+                format: "id == %@",
+                NSNumber(value: Int64(id))
+            )
+            request.fetchLimit = 1
+            
+            do {
+                guard try context.fetch(request).isEmpty else { return } // duplicate detection
+                
+                let favourite = FavouriteGame(context: context)
+                favourite.id = Int64(game.id)
+                favourite.name = game.name
+                favourite.image = game.backgroundImage
+                favourite.rating = game.rating
+                favourite.addedAt = Date()
+                
+                try context.save()
+            } catch {
+                saveError = error
+            }
         }
         
         if let saveError { throw saveError }
