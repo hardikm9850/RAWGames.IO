@@ -66,6 +66,8 @@ final class GamesListViewModel {
             }
         } catch {
             errorMessage = error.localizedDescription
+            
+            print("error occurred while retrieving games \(errorMessage)")
         }
         
         isLoading = false
@@ -92,7 +94,7 @@ final class GamesListViewModel {
     
     // MARK: - Favourites
     func loadFavouriteIDs() async {
-        let favourites = try? await fetchGamesUseCase.execute() // return favourites or nil
+        let favourites = try? await fetchFavouritesUseCase.execute() // return favourites or nil
         
         favouriteIDs = Set(favourites?.map(\.id) ?? []) // check for nulity 
     }

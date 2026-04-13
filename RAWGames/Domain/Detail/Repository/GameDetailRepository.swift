@@ -6,6 +6,6 @@
 //
 
 
-protocol GameDetailRepository {
+protocol GameDetailRepository : Sendable {
     func getGameDetail(id: Int) async throws -> GameDetail
 }

@@ -19,10 +19,15 @@ struct GamesAPIService: Sendable {
         guard let url = GameRoute.games(page: page).url else {
             throw NetworkError.invalidURL
         }
-        let response: GamesResponseDTO = try await client.get(url: url)
-        return response.results.map { game in
-            game.toDomain()
+        do {
+            let response: GamesResponseDTO = try await client.get(url: url)
+            return response.results.map { game in
+                game.toDomain()
+            }
+        } catch {
+            print("Error while getting games \(error.localizedDescription)")
         }
+        return []
     }
 
     func fetchDetail(id: Int) async throws -> GameDetail {

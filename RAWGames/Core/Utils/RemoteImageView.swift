@@ -12,16 +12,20 @@ struct RemoteImageView: View {
     
     var body: some View {
         LazyImage(url: URL(string: url)) { state in
-            switch map(state) {
-            case .loading:
-                loadingView
-            case .success(let image):
-                image.resizable()
-            case .failure:
-                errorView
+            let isLoading = state.image == nil && state.error == nil
+
+            Group {
+                switch map(state) {
+                case .loading:
+                    loadingView
+                case .success(let image):
+                    image.resizable()
+                case .failure:
+                    errorView
+                }
             }
+            .animation(.easeInOut, value: isLoading)
         }
-        .animation(.easeInOut, value: UUID())
     }
     
     private var loadingView: some View {

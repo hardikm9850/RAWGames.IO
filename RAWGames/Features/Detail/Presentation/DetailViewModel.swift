@@ -13,9 +13,9 @@ class DetailViewModel  {
     
     private let fetchGameDetailUseCase: FetchGameDetailUseCase
     private let updateFavouriteGameUseCase: UpdateFavouriteGameUseCase
-    var gameDetail : GameDetail?
+    var state: ViewState<GameDetail> = .idle
     let gameId : Int
-    
+    private var isTogglingFavourite = false
     
     init(
         fetchGameDetailUseCase: FetchGameDetailUseCase,
@@ -28,33 +28,47 @@ class DetailViewModel  {
     }
     
     func loadGameDetail() async {
+        state = .loading
+
         do {
-            gameDetail = try await fetchGameDetailUseCase.execute(id: gameId)
+            let gameDetail = try await fetchGameDetailUseCase.execute(id: gameId)
+            state = .loaded(gameDetail)
             print("DetailViewModel : received game detail. Updating the state")
         } catch {
-            print("Error while retrieving game details for id %d", gameId)
+            state = .failed("Unable to load game details. Please try again.")
+            print("Error while retrieving game details for id \(gameId): \(error.localizedDescription)")
+        }
+    }
+
+    func retryLoadGameDetail() {
+        Task {
+            await loadGameDetail()
         }
     }
     
     func onFavouriteTapped() {
+        guard !isTogglingFavourite else { return } // prevent double tap
+        
         Task {
             await toggleFavourite()
         }
     }
     
     private func toggleFavourite() async {
-        guard let current = gameDetail else { return }
-        print("current fav \(current.isFavourite)")
+        guard !isTogglingFavourite, case let .loaded(current) = state else { return }
+        
+        isTogglingFavourite = true
+        defer { isTogglingFavourite = false }
+        
+        
         let newValue = !current.isFavourite
-        gameDetail = current.copy(isFavourite: newValue)
-        print("post updating fav \(gameDetail!.isFavourite)")
+        state = .loaded(current.copy(isFavourite: newValue))
         
         do {
             let confirmed = try await updateFavouriteGameUseCase.execute(id: current.id)
-            print("result from repo \(confirmed)")
-            gameDetail = current.copy(isFavourite: confirmed)
+            state = .loaded(current.copy(isFavourite: confirmed))
         } catch {
-            gameDetail = current
+            state = .loaded(current)
             print("Error occurred while favoriting the game \(gameId) \(error.localizedDescription)")
         }
     }

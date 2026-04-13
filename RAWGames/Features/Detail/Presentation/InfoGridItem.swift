@@ -18,8 +18,8 @@ struct InfoGridItem: View {
                 .font(.caption)
                 .foregroundColor(.gray)
             
-            if isLink {
-                Link(destination: URL(string: value)!) {
+            if isLink, let linkURL = URL(string: value) {
+                Link(destination: linkURL) {
                     Text(value)
                         .font(.subheadline)
                         .foregroundColor(.blue)

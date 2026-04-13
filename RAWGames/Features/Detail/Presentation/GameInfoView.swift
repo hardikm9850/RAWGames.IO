@@ -40,7 +40,7 @@ struct GameInfoView: View {
                 if !releaseDate.isEmpty || !developers.isEmpty {
                     GridRow {
                         if !releaseDate.isEmpty {
-                            InfoGridItem(title: "Release Date", value: releaseDate)
+                            InfoGridItem(title: "Release Date", value: formattedDate(releaseDate))
                         } else {
                             Color.clear
                         }

@@ -15,7 +15,7 @@ struct GameStatsSection: View {
             
             StatItem(
                 icon: "star.fill",
-                title: "Reviews",
+                title: "Ratings",
                 value: "\(game.rating)"
             )
             
@@ -63,16 +63,3 @@ struct StatItem: View {
     }
 }
 
-func formattedDate(_ date: String?) -> String {
-    guard let date else { return "-" }
-    
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    
-    if let d = formatter.date(from: date) {
-        formatter.dateFormat = "MMM d, yyyy"
-        return formatter.string(from: d)
-    }
-    
-    return date
-}

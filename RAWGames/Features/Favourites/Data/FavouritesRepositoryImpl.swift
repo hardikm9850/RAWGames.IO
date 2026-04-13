@@ -83,7 +83,6 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
             }
         
         var saveError: Error?
-        var fetchError: Error?
         
         context.performAndWait { // performAndWait runs on context's queue — safe to set properties
             let favourite = FavouriteGame(context: context)
@@ -101,7 +100,6 @@ actor FavouritesRepositoryImpl: FavouritesRepository {
                     }
         }
         
-        if let fetchError { throw fetchError }
         if let saveError { throw saveError }
     }
     
