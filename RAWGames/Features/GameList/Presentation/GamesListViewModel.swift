@@ -19,20 +19,28 @@ final class GamesListViewModel {
     var searchQuery = ""
     var isSearching = false
     var favouriteIDs: Set<Int> = []
+    var route: Route?
+    var hasLoadedInitialGames = false
     
     // MARK: - Dependencies — use cases, not services
     private let fetchGamesUseCase: FetchGamesUseCase
     private let searchGamesUseCase: SearchGamesUseCase
-    private let favouritesRepository: FavouritesRepository
-    
+    private let updateFavouriteGameUseCase: UpdateFavouriteGameUseCase
+    private let fetchFavouritesUseCase: FetchFavouritesUseCase
+    private let clearCachedGamesUseCase: ClearCachedGamesUseCase
     
     init(fetchGamesUseCase: FetchGamesUseCase,
          searchGamesUseCase: SearchGamesUseCase,
-         favouritesRepository: FavouritesRepository,
+         updateFavouriteGameUseCase: UpdateFavouriteGameUseCase,
+         fetchFavouritesUseCase: FetchFavouritesUseCase,
+         clearCachedGamesUseCase : ClearCachedGamesUseCase
     ) {
+        
         self.fetchGamesUseCase = fetchGamesUseCase
         self.searchGamesUseCase = searchGamesUseCase
-        self.favouritesRepository = favouritesRepository
+        self.updateFavouriteGameUseCase = updateFavouriteGameUseCase
+        self.fetchFavouritesUseCase = fetchFavouritesUseCase
+        self.clearCachedGamesUseCase = clearCachedGamesUseCase
     }
     
     func loadGames() async {
@@ -43,7 +51,7 @@ final class GamesListViewModel {
         
         do {
             async let games = fetchGamesUseCase.execute()
-            async let favourites = favouritesRepository.fetchFavourites()
+            async let favourites = fetchFavouritesUseCase.execute()
             
             let (fetchedGames, fetchedFavourites) = try await (games, favourites)
             self.favouriteIDs = Set(
@@ -57,8 +65,11 @@ final class GamesListViewModel {
                 updatedGame.isFavorite = favouriteIDs.contains(game.id)
                 return updatedGame
             }
+            hasLoadedInitialGames = true
         } catch {
             errorMessage = error.localizedDescription
+            
+            print("error occurred while retrieving games \(errorMessage)")
         }
         
         isLoading = false
@@ -79,26 +90,29 @@ final class GamesListViewModel {
     }
     
     func refresh() async {
-        try? await fetchGamesUseCase.repository.clearCache()
+        try? await clearCachedGamesUseCase.execute()
         await loadGames()
     }
     
     // MARK: - Favourites
     func loadFavouriteIDs() async {
-        let favourites = try? await favouritesRepository.fetchFavourites() // return favourites or nil
-        
-        favouriteIDs = Set(favourites?.map(\.id) ?? []) // check for nulity 
+        do {
+            favouriteIDs = Set(try await fetchFavouritesUseCase.execute().map(\.id))
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
     
     func toggleFavourite(_ game: Game) async {
         errorMessage = nil
+        
         do {
-            if favouriteIDs.contains(game.id) {
-                try await favouritesRepository.removeFavourite(id: game.id)
-                favouriteIDs.remove(game.id)
-            } else {
-                try await favouritesRepository.addFavourite(game)
+            let isFavourite = try await updateFavouriteGameUseCase.execute(id: game.id)
+            
+            if isFavourite {
                 favouriteIDs.insert(game.id)
+            } else {
+                favouriteIDs.remove(game.id)
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -112,5 +126,10 @@ final class GamesListViewModel {
             updatedGame.isFavorite = favouriteIDs.contains(game.id)
             return updatedGame
         }
+    }
+    
+    func onGameClicked(_ game: Game) {
+        print("viewmodel updates the state")
+        route = .detail(game.id)
     }
 }

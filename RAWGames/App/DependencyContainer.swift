@@ -16,7 +16,7 @@ public final class DependencyContainer {
     // MARK: - Services (infrastructure)
     let coreDataStack: CoreDataStack
     let httpClient: HTTPClient
-    let apiService: GamesAPIService
+    let gamesApiService: GamesAPIService
     
     // Actor — one instance shared across the app
     let cacheService: GamesCacheService
@@ -28,10 +28,15 @@ public final class DependencyContainer {
     private let gamesRepository: GamesRepository
     private let favouritesRepository: FavouritesRepository
     private let gameNoteRepository: GameNoteRepository
+    private let gameDetailRepository: GameDetailRepository
     
     // MARK: - Use Cases
     private let fetchGamesUseCase: FetchGamesUseCase
     private let searchGamesUseCase: SearchGamesUseCase
+    private let fetchGameDetailUseCase : FetchGameDetailUseCase
+    private let updateFavouriteUseCase : UpdateFavouriteGameUseCase
+    private let clearCachedGamesUseCase: ClearCachedGamesUseCase
+    private let fetchFavouritesUseCase: FetchFavouritesUseCase
     
     // MARK: - ViewModel
     let gamesListViewModel: GamesListViewModel
@@ -41,7 +46,7 @@ public final class DependencyContainer {
     private init() {
         coreDataStack = CoreDataStack.shared
         httpClient = HTTPClient()
-        apiService = GamesAPIService(client: httpClient)
+        gamesApiService = GamesAPIService(client: httpClient)
         
         // GamesCacheService gets a background context — NOT the viewContext
         // This means cache reads/writes never block the UI context
@@ -51,23 +56,41 @@ public final class DependencyContainer {
         gameNoteDAO = GameNoteDAOImpl(context: coreDataStack.newBackgroundContext())
         
         favouritesRepository = FavouritesRepositoryImpl(
-            context: coreDataStack.viewContext
+            context: coreDataStack.viewContext,
+            cacheService: cacheService
         )
         gamesRepository = GamesRepositoryImpl(
-                    apiService: apiService,
-                    cacheService: cacheService
-                )
+            apiService: gamesApiService,
+            cacheService: cacheService
+        )
         gameNoteRepository = GameNoteRepositoryImpl(dao: gameNoteDAO)
+        gameDetailRepository = GameDetailRepositoryImpl(
+            apiClient: gamesApiService,
+            gameCacheService: cacheService
+        )
+        
         
         fetchGamesUseCase = FetchGamesUseCase(repository: gamesRepository)
         searchGamesUseCase = SearchGamesUseCase(repository: gamesRepository)
+        fetchGameDetailUseCase = FetchGameDetailUseCase(gameDetailRepository: gameDetailRepository, favouritesRepository: favouritesRepository)
+        updateFavouriteUseCase = UpdateFavouriteGameUseCase(repository:  favouritesRepository)
+        fetchFavouritesUseCase = FetchFavouritesUseCase(favouritesRepository: favouritesRepository)
+        clearCachedGamesUseCase = ClearCachedGamesUseCase(repository: gamesRepository)
         
         self.gamesListViewModel = GamesListViewModel(
             fetchGamesUseCase: fetchGamesUseCase,
-                       searchGamesUseCase: searchGamesUseCase,
-                       favouritesRepository: favouritesRepository
+            searchGamesUseCase: searchGamesUseCase,
+            updateFavouriteGameUseCase: updateFavouriteUseCase,
+            
+            fetchFavouritesUseCase: fetchFavouritesUseCase,
+            clearCachedGamesUseCase : clearCachedGamesUseCase
         )
-        self.favouritesViewModel = FavouritesViewModel(apiService: apiService, favouritesRepository: favouritesRepository)
+        self.favouritesViewModel = FavouritesViewModel(apiService: gamesApiService, favouritesRepository: favouritesRepository)
         self.notesViewModel = NotesViewModel(repository: gameNoteRepository)
+    }
+    
+    func makeDetailViewModel(gameId: Int) -> DetailViewModel {
+        print("container : make detail viewmodel")
+        return DetailViewModel(fetchGameDetailUseCase: fetchGameDetailUseCase, updateFavoruiteUseCase: updateFavouriteUseCase, gameId: gameId)
     }
 }

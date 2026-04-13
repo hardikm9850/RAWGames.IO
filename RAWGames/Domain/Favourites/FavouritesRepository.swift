@@ -8,7 +8,8 @@
 
 protocol FavouritesRepository: Sendable {
     func fetchFavourites() async throws -> [Game]
-    func addFavourite(_ game: Game) async throws
+    func addFavourite(id: Int) async throws
     func removeFavourite(id: Int) async throws
     func isFavourite(id: Int) async throws -> Bool
+    func toggleFavourite(id: Int) async throws -> Bool
 }

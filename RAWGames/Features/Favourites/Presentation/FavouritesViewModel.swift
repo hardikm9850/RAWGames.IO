@@ -35,7 +35,7 @@ final class FavouritesViewModel {
                 try await favouritesRepository.removeFavourite(id: game.id)
                 favouriteIDs.remove(game.id)
             } else {
-                try await favouritesRepository.addFavourite(game)
+                try await favouritesRepository.addFavourite(id: game.id)
                 favouriteIDs.insert(game.id)
             }
         } catch {

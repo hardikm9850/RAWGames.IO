@@ -64,6 +64,35 @@ actor GamesCacheService { // actor is a swift task
         }
     }
     
+    func updateGame(game: GameDetail) async throws -> CachedGame {
+        try await context.perform {
+            let request: NSFetchRequest<CachedGame> = CachedGame.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %d", game.id)
+            request.fetchLimit = 1
+            
+            guard let cachedGame = try self.context.fetch(request).first else {
+                throw NSError(domain: "Game not found", code: 404)
+            }
+            
+            // we update existing fields
+            cachedGame.desc = game.description
+            cachedGame.rating = game.rating
+            cachedGame.released = game.released
+            cachedGame.metacritic = Int16(game.metacritic ?? 0)
+            cachedGame.website = game.website
+            cachedGame.genres = game.genres.joined(separator: ",")
+            cachedGame.platforms = game.platforms.joined(separator: ",")
+            cachedGame.developers = game.developers.joined(separator: ",")
+            cachedGame.publishers = game.publishers.joined(separator: ",")
+            cachedGame.playtime = Int64(game.playtime)
+            cachedGame.cachedAt = Date()
+            cachedGame.isDetailAvailable = true
+            
+            try self.context.save()
+            return cachedGame
+        }
+    }
+    
     // MARK: - Read
     
     func fetchCachedGames() async throws -> [Game]? {
@@ -85,16 +114,11 @@ actor GamesCacheService { // actor is a swift task
             guard !results.isEmpty else { return nil }
             
             return results.map { cached in
-                Game(
-                    id: Int(cached.id),
-                    name: cached.name ?? "",
-                    backgroundImage: cached.image,
-                    rating: cached.rating,
-                    released: cached.released
-                )
+                cached.mapToGame()
             }
         }
     }
+    
     
     // MARK: - Validity check
     
@@ -128,4 +152,47 @@ actor GamesCacheService { // actor is a swift task
             )
         }
     }
+    
+    func fetchGameDetail(id: Int) async throws -> GameDetail? {
+        try await context.perform { () -> GameDetail? in
+            let request: NSFetchRequest<CachedGame> = CachedGame.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %d", id)
+            request.fetchLimit = 1
+            
+            guard let cached = try self.context.fetch(request).first,
+                  cached.isDetailAvailable == true else {
+                return nil
+            }
+            
+            return cached.mapToGameDetail()
+        }
+    }
+    
+    func fetchGameById(id: Int) async throws -> Game? {
+        try await context.perform { () -> Game? in
+            let request = CachedGame.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %d", id)
+            request.fetchLimit = 1
+            
+            
+            let results = try self.context.fetch(request)
+            guard !results.isEmpty else { return nil }
+            
+            return results.first.map(\.asGame)
+        }
+    }
+    
+    func isDetailAvailable(id: Int) async throws -> Bool {
+        try await context.perform {
+            let request: NSFetchRequest<CachedGame> = CachedGame.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %d", id)
+            request.fetchLimit = 1
+            
+            guard let isDetailAvailable = try self.context.fetch(request).first?.isDetailAvailable else {
+                return false
+            }
+            return isDetailAvailable
+        }
+    }
+    
 }

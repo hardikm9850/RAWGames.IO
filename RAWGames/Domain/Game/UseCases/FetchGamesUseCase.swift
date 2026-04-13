@@ -9,7 +9,7 @@
 
 struct FetchGamesUseCase: Sendable {
 
-    let repository: GamesRepository
+    private let repository: GamesRepository
 
     init(repository: GamesRepository) {
         self.repository = repository
