@@ -20,6 +20,7 @@ final class GamesListViewModel {
     var isSearching = false
     var favouriteIDs: Set<Int> = []
     var route: Route?
+    var hasLoadedInitialGames = false
     
     // MARK: - Dependencies — use cases, not services
     private let fetchGamesUseCase: FetchGamesUseCase
@@ -64,6 +65,7 @@ final class GamesListViewModel {
                 updatedGame.isFavorite = favouriteIDs.contains(game.id)
                 return updatedGame
             }
+            hasLoadedInitialGames = true
         } catch {
             errorMessage = error.localizedDescription
             

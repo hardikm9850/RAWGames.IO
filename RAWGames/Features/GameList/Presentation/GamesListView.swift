@@ -49,6 +49,7 @@ struct GamesListView: View {
                 }
         }
         .task {
+            guard !viewModel.hasLoadedInitialGames else { return }
             await viewModel.loadGames()
         }
         .alert("Something went wrong", isPresented: errorBinding) {
@@ -121,40 +122,40 @@ struct GameHeroCard: View {
     }
     
     var body: some View {
-        ZStack {
-            VStack(alignment: .leading, spacing: 0) {
+        Button {
+            onGameClicked()
+        } label: {
+            ZStack {
+                VStack(alignment: .leading, spacing: 0) {
+                    ZStack(alignment: .bottomLeading) {
+                        RemoteImageView(
+                            url: game.backgroundImage ?? "https://placehold.co/600x400"
+                        )
+                        .frame(height: 200)
+                        .frame(maxWidth: .infinity)
 
-                ZStack(alignment: .bottomLeading) {
-                    RemoteImageView(
-                        url: game.backgroundImage
-                        ?? "https://placehold.co/600x400"
-                    )
-                    .frame(height: 200)
-                    .frame(maxWidth: .infinity)
-
-                    LinearGradient(
-                        colors: [.clear, .black.opacity(0.6)],
-                        startPoint: .center,
-                        endPoint: .bottom
-                    )
+                        LinearGradient(
+                            colors: [.clear, .black.opacity(0.6)],
+                            startPoint: .center,
+                            endPoint: .bottom
+                        )
+                    }
                 }
             }
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(alignment: .bottomLeading) {
+                gameInfo.padding()
+            }
+            .overlay(alignment: .topTrailing) {
+                favouriteButton.padding(10)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 16).fill(Color(.systemBackground))
+            )
+            .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
         }
-        .onTapGesture {
-            print("game clicked")
-            onGameClicked()
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(alignment: .bottomLeading) {
-            gameInfo.padding()
-        }
-        .overlay(alignment: .topTrailing) {
-            favouriteButton.padding(10)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-        )
-        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+        .buttonStyle(.plain) 
+        .accessibilityLabel(game.name)
+        .accessibilityHint("Open game details")
     }
 }
