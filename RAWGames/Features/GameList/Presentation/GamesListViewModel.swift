@@ -96,9 +96,11 @@ final class GamesListViewModel {
     
     // MARK: - Favourites
     func loadFavouriteIDs() async {
-        let favourites = try? await fetchFavouritesUseCase.execute() // return favourites or nil
-        
-        favouriteIDs = Set(favourites?.map(\.id) ?? []) // check for nulity 
+        do {
+            favouriteIDs = Set(try await fetchFavouritesUseCase.execute().map(\.id))
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
     
     func toggleFavourite(_ game: Game) async {
